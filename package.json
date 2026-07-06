@@ -1,0 +1,12 @@
+{
+  "name": "race-sim",
+  "version": "1.0.0",
+  "description": "Web-based multiplayer race car driving simulator with 6-digit PIN sessions",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
