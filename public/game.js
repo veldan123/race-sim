@@ -3,13 +3,18 @@
 /* ================= Car catalog ================= */
 // stats: maxSpd/accel in world px/s, turn in rad/s, grip = lateral damping
 const CARS = {
-  cruiser: { name: 'Cruiser',   maxSpd: 680, accel: 560, turn: 2.50, grip: 6.5, basic: true },
-  falcon:  { name: 'Falcon RS', maxSpd: 705, accel: 720, turn: 2.55, grip: 6.9 },
-  viper:   { name: 'Viper GT',  maxSpd: 800, accel: 610, turn: 2.50, grip: 6.6 },
-  ghost:   { name: 'Ghost X1',  maxSpd: 720, accel: 630, turn: 2.95, grip: 8.4 },
+  cruiser: { name: 'Cruiser',    maxSpd: 680, accel: 560, turn: 2.50, grip: 6.5, basic: true },
+  comet:   { name: 'Comet',      maxSpd: 690, accel: 760, turn: 2.60, grip: 7.0 },
+  falcon:  { name: 'Falcon RS',  maxSpd: 705, accel: 720, turn: 2.55, grip: 6.9 },
+  zephyr:  { name: 'Zephyr',     maxSpd: 700, accel: 600, turn: 3.05, grip: 8.8 },
+  ghost:   { name: 'Ghost X1',   maxSpd: 720, accel: 630, turn: 2.95, grip: 8.4 },
+  raptor:  { name: 'Raptor SR',  maxSpd: 780, accel: 690, turn: 2.70, grip: 7.4 },
+  viper:   { name: 'Viper GT',   maxSpd: 800, accel: 610, turn: 2.50, grip: 6.6 },
+  titan:   { name: 'Titan V8',   maxSpd: 830, accel: 580, turn: 2.35, grip: 6.3 },
   apex:    { name: 'Apex Prime', maxSpd: 810, accel: 700, turn: 2.85, grip: 7.9 },
+  phantom: { name: 'Phantom Z',  maxSpd: 825, accel: 735, turn: 2.90, grip: 8.2 },
 };
-const CAR_ORDER = ['cruiser', 'falcon', 'viper', 'ghost', 'apex'];
+const CAR_ORDER = ['cruiser', 'comet', 'falcon', 'zephyr', 'ghost', 'raptor', 'viper', 'titan', 'apex', 'phantom'];
 const BOX_COST = 100;
 const WIN_REWARD = 10;
 const COLORS = ['#ff4757', '#2ed3f7', '#ffd32a', '#7bed9f', '#ff7f50', '#c56cf0', '#f8f8f8', '#3ae374'];
@@ -58,10 +63,11 @@ const TRACK_HALF_W = 58;
 const LAPS = 3;
 
 const CONTROL = [
-  [700, 620], [1700, 400], [2600, 560], [3200, 320], [4000, 430],
-  [4620, 800], [4720, 1500], [4300, 1950], [4560, 2480], [4120, 3000],
-  [3300, 3160], [2720, 2820], [2180, 3060], [1500, 3220], [820, 2920],
-  [460, 2300], [720, 1800], [400, 1150],
+  [700, 620], [1600, 380], [2500, 560], [3100, 300], [3900, 500],
+  [4400, 260], [5100, 420], [5700, 700], [5850, 1300], [5500, 1800],
+  [5900, 2400], [5400, 2950], [4750, 3150], [4300, 2680], [3800, 3150],
+  [3150, 3300], [2650, 2850], [2100, 3250], [1400, 3380], [700, 3100],
+  [420, 2500], [750, 1950], [420, 1400], [700, 1000],
 ];
 
 function catmullRom(p0, p1, p2, p3, t) {
@@ -446,7 +452,8 @@ function resetRaceUI() {
 function placeMyCar(gridPos) {
   const pose = spawnPose(gridPos);
   car.x = pose.x; car.y = pose.y; car.angle = pose.angle;
-  car.f = 0; car.l = 0; car.trackIdx = pose.idx; car.lap = 0;
+  // Spawn is behind the start line, so the opening crossing bumps this to 0 ("on lap 1")
+  car.f = 0; car.l = 0; car.trackIdx = pose.idx; car.lap = -1;
   car.finished = false;
 }
 
@@ -468,7 +475,7 @@ function startRace(grid, startAtLocal) {
         { x: rp.x, y: rp.y, angle: rp.angle, rt: performance.now() - 50 },
         { x: rp.x, y: rp.y, angle: rp.angle, rt: performance.now() },
       ],
-      lap: 0, idx: rp.idx, finished: false, speed: 0,
+      lap: -1, idx: rp.idx, finished: false, speed: 0,
     };
   }
   resetRaceUI();
@@ -521,7 +528,7 @@ function startSolo(name) {
     aiCars.push({
       id: -(k + 1), name: names[k], color: aiColors[k % aiColors.length], model,
       skill: skills[k],
-      x: 0, y: 0, angle: 0, f: 0, l: 0, trackIdx: 0, lap: 0,
+      x: 0, y: 0, angle: 0, f: 0, l: 0, trackIdx: 0, lap: -1,
       onGrass: false, drifting: false, finished: false, finishTime: 0,
     });
   }
@@ -889,15 +896,25 @@ function drawCar(x, y, angle, color, model) {
   ctx.fill();
 
   // Model accents
-  if (model === 'falcon') {
+  if (model === 'falcon' || model === 'comet') {
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.fillRect(-16, -2.5, 30, 1.8);
     ctx.fillRect(-16, 0.7, 30, 1.8);
-  } else if (model === 'viper' || model === 'apex') {
+  }
+  if (model === 'raptor' || model === 'phantom') {
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(-16, -8.2, 30, 1.6); // side sills
+    ctx.fillRect(-16, 6.6, 30, 1.6);
+  }
+  if (model === 'viper' || model === 'apex' || model === 'titan' || model === 'phantom') {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(-21, -10, 4, 20); // rear wing
   }
-  if (model === 'ghost' || model === 'apex') {
+  if (model === 'titan') {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(2, -4, 7, 8); // hood scoop
+  }
+  if (model === 'ghost' || model === 'zephyr' || model === 'apex' || model === 'phantom') {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fillRect(10, -7, 2.5, 14); // front canards
   }
