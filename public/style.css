@@ -39,7 +39,10 @@ html, body {
   display: none;
   overflow-y: auto;
 }
-.screen.active { display: flex; align-items: center; justify-content: center; }
+/* Cards center via margin:auto so content taller than the viewport
+   stays scrollable (align-items:center would clip the top edge) */
+.screen.active { display: flex; }
+#screen-menu.active, #screen-lobby.active, #screen-garage.active { padding: 1.5rem 1rem; }
 #screen-game.active { display: block; }
 
 .hidden { display: none !important; }
@@ -47,12 +50,13 @@ html, body {
 /* ============ Menu ============ */
 
 .menu-card, .lobby-card {
-  width: min(400px, calc(100vw - 2rem));
+  width: min(400px, 100%);
   padding: 2.5rem 2rem;
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: 14px;
-  margin: 2rem auto;
+  margin: auto;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -173,12 +177,20 @@ input::placeholder { color: oklch(0.60 0.01 60); }
 .garage-cta { margin-left: auto; color: var(--accent); font-size: 0.82rem; }
 
 .garage-card {
-  width: min(480px, calc(100vw - 2rem));
+  width: min(760px, 100%);
   padding: 2rem;
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: 14px;
-  margin: 2rem auto;
+  margin: auto;
+  flex-shrink: 0;
+}
+
+#car-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
 }
 
 .garage-head {
@@ -205,8 +217,7 @@ input::placeholder { color: oklch(0.60 0.01 60); }
   align-items: center;
   gap: 1rem;
   width: 100%;
-  padding: 0.8rem 0.9rem;
-  margin-bottom: 0.6rem;
+  padding: 0.7rem 0.9rem;
   background: var(--bg);
   border: 1px solid var(--edge);
   border-radius: 10px;

@@ -317,7 +317,7 @@ function renderGarage() {
     const tag = document.createElement('span');
     if (id === selCar) { tag.className = 'car-tag sel'; tag.textContent = 'SELECTED'; }
     else if (owned) { tag.className = 'car-tag owned'; tag.textContent = c.basic ? 'STARTER CAR' : 'OWNED'; }
-    else { tag.className = 'car-tag lock'; tag.textContent = 'LOCKED — MYSTERY BOX'; }
+    else { tag.className = 'car-tag lock'; tag.textContent = 'LOCKED'; }
     idBox.appendChild(nm); idBox.appendChild(tag);
 
     card.appendChild(idBox);
